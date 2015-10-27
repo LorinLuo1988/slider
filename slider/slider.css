@@ -1,9 +1,9 @@
-.slider-container {
+.slider {
 	overflow: hidden;
 	position: relative;
 	cursor: pointer;
 }
-ul.slider {
+ul.carousel {
 	list-style-type: none;
 	width: 100%;
 	height: 100%;
@@ -11,12 +11,12 @@ ul.slider {
 	top: 0px;
 	left: 0px;
 }
-ul.slider li {
+ul.carousel li {
 	width: 100%;
 	float: left;
 	height: 100%;
 }
-ul.slider li img {
+ul.carousel li img {
 	width: 100%;
 	height: 100%;
 }
@@ -37,7 +37,7 @@ ul.slider-nav li {
 	*zoom:1;
 	background-color: gray;
 	cursor: pointer;
-	*margin-right: 5px;
+	margin-right: 5px;
 }
 ul.slider-nav.round {
 	height: 15px;
