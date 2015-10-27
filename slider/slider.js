@@ -1,6 +1,7 @@
 /**
  * Created by doyen on 2015/10/20.
  */
+/*-------master*--------/
 (function ($) {
 	function Slider (sliderContainer ,setting) {
 		this.sliderContainer = sliderContainer;
