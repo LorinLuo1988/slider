@@ -174,7 +174,7 @@
 		return this;
 	};
 
-	Slider.prototype.carouselRun = function (isBindClick) {
+	Slider.prototype.carouselRun = function () {
 		var self = this;
 
 		this.timeout = setTimeout(function () {
@@ -196,13 +196,41 @@
 		var self = setting.context;
 		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
-		var marginLeft = 0;
 
 		if (setting.direction == "left") {
 			self.liIndex++;
-			self.liIndex = self.liIndex >= self.CarouselCount ? 0 : self.liIndex;
+
+			if (self.liIndex == self.CarouselCount) {
+				self.replaceImg = $("<img src='"+ carousel.find("li").eq(self.CarouselCount - 1).find("img").attr("src") +"'/>")
+									.css({
+										position: "absolute",
+										width: "100%",
+										height: "100%",
+										left: "0px",
+										top: "0px"
+									});
+
+				self.slider.append(self.replaceImg);
+				carousel.css("left", carousel.find("li").width());
+				self.liIndex = 0;
+			}
 		} else if (setting.direction == "right") {
 			self.liIndex--;
+
+			if (self.liIndex == -1) {
+				self.replaceImg = $("<img src='"+ carousel.find("li").eq(0).find("img").attr("src") +"'/>")
+					.css({
+						position: "absolute",
+						width: "100%",
+						height: "100%",
+						left: "0px",
+						top: "0px"
+					});
+
+				self.slider.append(self.replaceImg);
+				carousel.css("left", -carousel.find("li").width() * self.CarouselCount);
+			}
+
 			self.liIndex = self.liIndex <= -1 ? self.CarouselCount - 1 : self.liIndex;
 		}
 
@@ -211,39 +239,21 @@
 		self.sliderNav.find("li").removeClass("active");
 		self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 
-		if (setting.direction == "right") {
-			var lastLi = carousel.find("li:last");
-
-			var newLi = lastLi.clone(true, true).css("marginLeft", -lastLi.width());
-			lastLi.remove();
-			carousel.prepend(newLi);
-		}
-
-		var firstLi = carousel.find("li:first");
-
 		self.timer = setInterval(function () {
-			marginLeft = parseInt(firstLi.css("marginLeft"));
 			self.animateCounter++;
 
-			if (self.animateCounter == self.AnimateCount) {
-				if (setting.direction == "left") {
-					firstLi.css({
-						marginLeft: -firstLi.width()
-					});
+			if (self.animateCounter % self.AnimateCount == 0) {
+				carousel.css("left", -carousel.find("li").width() * self.liIndex);
+				self.animateCounter = 0;
 
-					newLi = firstLi.clone(true, true).css("marginLeft", "0px");
-					firstLi.remove();
-					carousel.append(newLi);
-				} else if (setting.direction == "right") {
-					firstLi.css({
-						marginLeft: '0px'
-					});
+				if (self.replaceImg) {
+					self.replaceImg.remove();
 				}
 
-				self.animateCounter = 0;
 				clearInterval(self.timer);
 				delete self.timer;
 				delete self.timeout;
+				delete self.replaceImg;
 				self.sliding = false;
 
 				if (self.updateDelay) {
@@ -254,7 +264,11 @@
 					self.carouselRun();
 				}
 			} else {
-				firstLi.css("marginLeft", marginLeft + slideDeltaX);
+				carousel.css("left", parseInt(carousel.css("left")) + slideDeltaX);
+
+				if (self.replaceImg) {
+					self.replaceImg.css("left", parseInt(self.replaceImg.css("left")) + slideDeltaX);
+				}
 			}
 		}, self.setting.frameTime);
 	};
@@ -266,6 +280,7 @@
 		var sliderLeft = parseInt(carousel.css("left"));
 		var replaceImg = self.slider.children("img:first");
 		var replaceImgLeft = parseInt(replaceImg.css("left"));
+		var slideCount = Math.abs(setting.clickIndex - self.liIndex);
 
 		self.sliding = true;
 		self.liIndex = setting.clickIndex;
@@ -274,13 +289,10 @@
 
 		self.timer = setInterval(function () {
 			sliderLeft = parseInt(carousel.css("left"));
-			replaceImgLeft = parseInt(replaceImg.css("left"));
 			self.animateCounter++;
 
-			if (self.animateCounter == self.AnimateCount) {
-				replaceImg.css("left", (setting.direction == "left") ? -carousel.find("li").width() : carousel.find("li").width());
-				carousel.css("left", 0);
-				replaceImg.remove();
+			if (self.animateCounter >= self.AnimateCount * slideCount) {
+				carousel.css("left", (setting.direction == "left") ? -carousel.find("li").width() * self.liIndex : carousel.find("li").width() * self.liIndex);
 				self.animateCounter = 0;
 				clearInterval(self.timer);
 				delete self.timer;
@@ -296,7 +308,6 @@
 				}
 			} else {
 				carousel.css("left", sliderLeft + slideDeltaX);
-				replaceImg.css("left", replaceImgLeft + slideDeltaX);
 			}
 		}, self.setting.frameTime);
 	};
@@ -325,23 +336,6 @@
 		}
 
 		if (Math.abs(clickIndex - this.liIndex ) > 1) {
-			var replaceImg = carousel.find("li").eq(0).find("img").clone(true, true);
-
-			replaceImg.css({
-				width: carousel.find("li").width(),
-				height: carousel.find("li").height(),
-				position: "absolute",
-				top: "0px",
-				left: "0px"
-			}).appendTo(slider);
-
-			carousel.css("left", type == "next" ? carousel.find("li").width() : -carousel.find("li").width());
-
-			var beforeLis = carousel.find("li").slice(0, clickIndex - this.liIndex).clone(true, true);
-			var afterLis = carousel.find("li").slice(clickIndex - this.liIndex, this.CarouselCount).clone(true, true);
-
-			carousel.find("li").remove().end().append(afterLis).append(beforeLis);
-
 			this.multiNext({
 				context: this,
 				direction: type == "next" ? "left" : "right",
