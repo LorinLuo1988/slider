@@ -1,25 +1,24 @@
 /**
  * Created by doyen on 2015/10/20.
  */
-/*-------master*--------*/
 (function ($) {
-	function Slider (sliderContainer ,setting) {
-		this.sliderContainer = sliderContainer;
-		this.nextButton = sliderContainer.find("button.slider-next");
-		this.prevButton = sliderContainer.find("button.slider-prev");
-		this.slider = sliderContainer.find("ul.slider");
-		this.sliderNav = sliderContainer.find("ul.slider-nav");
+	function Slider (slider ,setting) {
+		this.slider = slider;
+		this.nextButton = null;
+		this.prevButton = null;
+		this.carousel = null;
+		this.sliderNav = null;
+		this.imgArr = setting.imgArr;
 		this.setting = setting;
 		this.timer = null;
 		this.indicatorsType = setting.indicatorsType;
-
 		this.intervalTime = this.setting.intervalTime;
 		this.animateTime = this.setting.animateTime;
 		this.frameTime = this.setting.frameTime;
 		this.AnimateCount = this.animateTime / this.frameTime;
-		this.slideDeltaX = Math.floor(this.sliderContainer.width() / this.AnimateCount);
+		this.slideDeltaX = Math.floor(this.slider.width() / this.AnimateCount);
 		this.liIndex = 0;
-		this.CarouselCount = this.slider.find("li").length;
+		this.CarouselCount = this.imgArr.length;
 		this.animateCounter = 0;
 		this.sliding = false;
 		this.pauseCommonSlide = false;
@@ -28,84 +27,84 @@
 	};
 
 	Slider.prototype.update = function (setting) {
+		var self = this;
+
 		setting = setting || {};
+
+		function updateInner () {
+			if (setting.intervalTime) {
+				self.intervalTime = setting.intervalTime;
+			}
+
+			if (setting.animateTime) {
+				self.animateTime = setting.animateTime;
+			}
+
+			if (setting.frameTime) {
+				self.frameTime = setting.frameTime;
+			}
+
+			if (setting.indicatorsType == "round") {
+				self.sliderNav.addClass("round");
+			} else if (setting.indicatorsType == "rectangle") {
+				self.sliderNav.removeClass("round");
+			}
+
+			self.AnimateCount = self.animateTime / self.frameTime;
+			self.slideDeltaX = Math.floor(self.slider.width() / self.AnimateCount);
+		};
 
 		if (this.sliding) {
 			this.updateDelay = function () {
-				if (setting.intervalTime) {
-					this.intervalTime = setting.intervalTime;
-				}
+				updateInner();
 
-				if (setting.animateTime) {
-					this.animateTime = setting.animateTime;
-				}
-
-				if (setting.frameTime) {
-					this.frameTime = setting.frameTime;
-				}
-
-				if (setting.indicatorsType == "round") {
-					this.sliderNav.addClass("round");
-				} else if (setting.indicatorsType == "rectangle") {
-					this.sliderNav.removeClass("round");
-				}
-
-				this.AnimateCount = this.animateTime / this.frameTime;
-				this.slideDeltaX = Math.floor(this.sliderContainer.width() / this.AnimateCount);
 				delete this.updateDelay;
 			}
+
 			return false;
 		}
 
-		if (setting.intervalTime) {
-			this.intervalTime = setting.intervalTime;
-		}
-
-		if (setting.animateTime) {
-			this.animateTime = setting.animateTime;
-		}
-
-		if (setting.frameTime) {
-			this.frameTime = setting.frameTime;
-		}
-
-		if (setting.indicatorsType == "round") {
-			this.sliderNav.addClass("round");
-		} else if (setting.indicatorsType == "rectangle") {
-			this.sliderNav.removeClass("round");
-		}
-
-		this.AnimateCount = this.animateTime / this.frameTime;
-		this.slideDeltaX = Math.floor(this.sliderContainer.width() / this.AnimateCount);
+		updateInner();
 	};
 
 	Slider.prototype.initialize = function () {
-		this.setDefaultStyle().registerEvent().carouselRun();
+		this.crateModule().setDefaultStyle().registerEvent().carouselRun();
+
+		return this;
+	};
+
+	Slider.prototype.crateModule = function () {
+		var imgArr = this.imgArr;
+		var length = imgArr.length;
+
+		this.carousel = $("<ul class='carousel'></ul>");
+		this.sliderNav = $("<ul class='slider-nav'></ul>");
+
+		for (var i = 0; i < length; i++) {
+			this.carousel.append($("<li><img src=" + imgArr[i] +" alt=''/></li>"));
+			this.sliderNav.append($("<li></li>"));
+		}
+
+		this.nextButton = $("<button class='slider-next'>&gt;</button>");
+		this.prevButton = $("<button class='slider-prev'>&lt;</button>");
+
+		this.slider.append(this.carousel).append(this.sliderNav)
+			.append(this.prevButton).append(this.nextButton);
 
 		return this;
 	};
 
 	Slider.prototype.setDefaultStyle = function () {
-		var sliderContainer = this.sliderContainer;
-		var slider = this.slider;
-		var sliderNav = this.sliderNav;
-		var sliderLiCount = slider.find("li").length;
+		var carouselLiCount = this.carousel.find("li").length;
+		var indicatorsType = this.indicatorsType || "rectangle";
 
-		slider.css({
-			"width": sliderLiCount * 100 + "%"
-		});
+		this.carousel.css("width", carouselLiCount * 100 + "%");
 
-		slider.find("li").css({
-			"width": 100 / sliderLiCount + "%"
-		});
+		this.carousel.find("li").css("width", 100 / carouselLiCount + "%");
 
-		sliderNav.find("li:first").addClass("active");
+		this.sliderNav.find("li:first").addClass("active");
 
-		if (this.indicatorsType == "round") {
-			this.sliderNav.addClass("round");
-		} else if (this.indicatorsType == "rectangle") {
-			this.sliderNav.removeClass("round");
-		}
+		this.sliderNav.addClass(indicatorsType);
 
 		return this;
 	};
@@ -113,20 +112,14 @@
 	Slider.prototype.registerEvent = function () {
 		var self = this;
 
-		this.sliderContainer.on("mouseenter", function () {
-			$(this).find("button.slider-prev").css("display", "block");
-			$(this).find("button.slider-next").css("display", "block");
-
-			if (self.timeout) {
-				clearTimeout(self.timeout);
-			}
-
+		this.slider.on("mouseenter", function () {
+			$(this).find("button.slider-prev, button.slider-next").css("display", "block");
+			clearTimeout(self.timeout);
 			self.pauseCommonSlide = true;
 		});
 
-		this.sliderContainer.on("mouseleave", function () {
-			$(this).find("button.slider-prev").css("display", "none");
-			$(this).find("button.slider-next").css("display", "none");
+		this.slider.on("mouseleave", function () {
+			$(this).find("button.slider-prev, button.slider-next").css("display", "none");
 			self.pauseCommonSlide = false;
 
 			if (self.animateCounter == 0) {
@@ -139,9 +132,7 @@
 				return false;
 			}
 
-			if (self.timeout) {
-				clearTimeout(self.timeout);
-			}
+			clearTimeout(self.timeout);
 
 			self.next({
 				direction: "left",
@@ -155,9 +146,7 @@
 				return false;
 			}
 
-			if (self.timeout) {
-				clearTimeout(self.timeout);
-			}
+			clearTimeout(self.timeout);
 
 			self.next({
 				direction: "right",
@@ -172,9 +161,7 @@
 					return false;
 				}
 
-				if (self.timeout) {
-					clearTimeout(self.timeout);
-				}
+				clearTimeout(self.timeout);
 
 				self.fix(index);
 			});
@@ -207,23 +194,16 @@
 
 	Slider.prototype.next = function (setting) {
 		var self = setting.context;
-		var slider = self.slider;
+		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
-		var newLi = null;
 		var marginLeft = 0;
 
 		if (setting.direction == "left") {
 			self.liIndex++;
-
-			if (self.liIndex >= self.CarouselCount) {
-				self.liIndex = 0;
-			}
+			self.liIndex = self.liIndex >= self.CarouselCount ? 0 : self.liIndex;
 		} else if (setting.direction == "right") {
 			self.liIndex--;
-
-			if (self.liIndex <= -1) {
-				self.liIndex = self.CarouselCount - 1;
-			}
+			self.liIndex = self.liIndex <= -1 ? self.CarouselCount - 1 : self.liIndex;
 		}
 
 		self.sliding = true;
@@ -231,92 +211,60 @@
 		self.sliderNav.find("li").removeClass("active");
 		self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 
-		switch (setting.direction) {
-			case "left" : left(); break;
-			case "right" : right(); break;
-		};
+		if (setting.direction == "right") {
+			var lastLi = carousel.find("li:last");
 
-		function left () {
-			var firstLi = slider.find("li:first");
+			var newLi = lastLi.clone(true, true).css("marginLeft", -lastLi.width());
+			lastLi.remove();
+			carousel.prepend(newLi);
+		}
 
-			self.timer = setInterval(function () {
-				marginLeft = parseInt(firstLi.css("marginLeft"));
-				self.animateCounter++;
+		var firstLi = carousel.find("li:first");
 
-				if (self.animateCounter == self.AnimateCount) {
+		self.timer = setInterval(function () {
+			marginLeft = parseInt(firstLi.css("marginLeft"));
+			self.animateCounter++;
+
+			if (self.animateCounter == self.AnimateCount) {
+				if (setting.direction == "left") {
 					firstLi.css({
 						marginLeft: -firstLi.width()
 					});
 
 					newLi = firstLi.clone(true, true).css("marginLeft", "0px");
 					firstLi.remove();
-					slider.append(newLi);
-					self.animateCounter = 0;
-					clearInterval(self.timer);
-					delete self.timer;
-					delete self.timeout;
-					self.sliding = false;
-
-					if (self.updateDelay) {
-						self.updateDelay();
-					}
-
-					if (!self.pauseCommonSlide) {
-						self.carouselRun();
-					}
-				} else {
-					firstLi.css({
-						marginLeft: marginLeft + slideDeltaX
-					});
-				}
-			}, self.setting.frameTime);
-		};
-		function right () {
-			var lastLi = slider.find("li:last");
-
-			newLi = lastLi.clone(true, true).css("marginLeft", -lastLi.width());
-			lastLi.remove();
-			slider.prepend(newLi);
-
-			var firstLi = slider.find("li:first");
-
-			self.timer = setInterval(function () {
-				marginLeft = parseInt(firstLi.css("marginLeft"));
-				self.animateCounter++;
-
-				if (self.animateCounter == self.AnimateCount) {
+					carousel.append(newLi);
+				} else if (setting.direction == "right") {
 					firstLi.css({
 						marginLeft: '0px'
 					});
-
-					self.animateCounter = 0;
-					clearInterval(self.timer);
-					delete self.timer;
-					delete self.timeout;
-					self.sliding = false;
-
-					if (self.updateDelay) {
-						self.updateDelay();
-					}
-
-					if (!self.pauseCommonSlide) {
-						self.carouselRun();
-					}
-				} else {
-					firstLi.css({
-						marginLeft: marginLeft + slideDeltaX
-					});
 				}
-			}, self.setting.frameTime);
-		};
+
+				self.animateCounter = 0;
+				clearInterval(self.timer);
+				delete self.timer;
+				delete self.timeout;
+				self.sliding = false;
+
+				if (self.updateDelay) {
+					self.updateDelay();
+				}
+
+				if (!self.pauseCommonSlide) {
+					self.carouselRun();
+				}
+			} else {
+				firstLi.css("marginLeft", marginLeft + slideDeltaX);
+			}
+		}, self.setting.frameTime);
 	};
 
 	Slider.prototype.multiNext = function (setting) {
 		var self = setting.context;
-		var slider = self.slider;
+		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
-		var sliderLeft = parseInt(slider.css("left"));
-		var replaceImg = self.sliderContainer.children("img:first");
+		var sliderLeft = parseInt(carousel.css("left"));
+		var replaceImg = self.slider.children("img:first");
 		var replaceImgLeft = parseInt(replaceImg.css("left"));
 
 		self.sliding = true;
@@ -325,19 +273,13 @@
 		self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 
 		self.timer = setInterval(function () {
-			sliderLeft = parseInt(slider.css("left"));
+			sliderLeft = parseInt(carousel.css("left"));
 			replaceImgLeft = parseInt(replaceImg.css("left"));
 			self.animateCounter++;
 
 			if (self.animateCounter == self.AnimateCount) {
-				replaceImg.css({
-					left: (setting.direction == "left") ? -slider.find("li").width() : slider.find("li").width()
-				});
-
-				slider.css({
-					left: 0
-				});
-
+				replaceImg.css("left", (setting.direction == "left") ? -carousel.find("li").width() : carousel.find("li").width());
+				carousel.css("left", 0);
 				replaceImg.remove();
 				self.animateCounter = 0;
 				clearInterval(self.timer);
@@ -353,20 +295,15 @@
 					self.carouselRun();
 				}
 			} else {
-				slider.css({
-					left: sliderLeft + slideDeltaX
-				});
-
-				replaceImg.css({
-					left: replaceImgLeft + slideDeltaX
-				});
+				carousel.css("left", sliderLeft + slideDeltaX);
+				replaceImg.css("left", replaceImgLeft + slideDeltaX);
 			}
 		}, self.setting.frameTime);
 	};
 
 	Slider.prototype.fix = function (clickIndex) {
-		var sliderContainer = this.sliderContainer;
 		var slider = this.slider;
+		var carousel = this.carousel;
 		var type = clickIndex - this.liIndex > 0 ? 'next' : clickIndex - this.liIndex == 0 ? "static" : "prev";
 
 		if (this.liIndex == clickIndex) {
@@ -377,18 +314,10 @@
 			return false;
 		}
 
-		if (this.liIndex - clickIndex == 1) {
+		if (Math.abs(this.liIndex - clickIndex) == 1) {
 			this.next({
-				direction: "right",
+				direction: this.liIndex - clickIndex == 1 ? "right" : "left",
 				type: "prev",
-				context: this
-			});
-
-			return false;
-		} else if (this.liIndex - clickIndex == -1) {
-			this.next({
-				direction: "left",
-				type: "next",
 				context: this
 			});
 
@@ -396,43 +325,29 @@
 		}
 
 		if (Math.abs(clickIndex - this.liIndex ) > 1) {
-			var replaceImg = slider.find("li").eq(0).find("img").clone(true, true);
+			var replaceImg = carousel.find("li").eq(0).find("img").clone(true, true);
 
 			replaceImg.css({
-				width: slider.find("li").width(),
-				height: slider.find("li").height(),
+				width: carousel.find("li").width(),
+				height: carousel.find("li").height(),
 				position: "absolute",
 				top: "0px",
 				left: "0px"
-			}).appendTo(sliderContainer);
+			}).appendTo(slider);
 
-			if (type == "next") {
-				slider.css("left", slider.find("li").width());
-			} else if (type == "prev") {
-				slider.css("left", -slider.find("li").width());
-			}
+			carousel.css("left", type == "next" ? carousel.find("li").width() : -carousel.find("li").width());
 
-			var beforeLis = slider.find("li").slice(0, clickIndex - this.liIndex).clone(true, true);
-			var afterLis = slider.find("li").slice(clickIndex - this.liIndex, this.CarouselCount).clone(true, true);
+			var beforeLis = carousel.find("li").slice(0, clickIndex - this.liIndex).clone(true, true);
+			var afterLis = carousel.find("li").slice(clickIndex - this.liIndex, this.CarouselCount).clone(true, true);
 
-			slider.find("li").remove();
-			slider.append(afterLis).append(beforeLis);
+			carousel.find("li").remove().end().append(afterLis).append(beforeLis);
 
-			if (type == "next") {
-				this.multiNext({
-					context: this,
-					direction: "left",
-					type: "multiLeft",
-					clickIndex: clickIndex
-				});
-			} else if (type == "prev") {
-				this.multiNext({
-					context: this,
-					direction: "right",
-					type: "multiRight",
-					clickIndex: clickIndex
-				});
-			}
+			this.multiNext({
+				context: this,
+				direction: type == "next" ? "left" : "right",
+				type: type == "next" ? "multiLeft" : "multiRight",
+				clickIndex: clickIndex
+			});
 		}
 	};
 
