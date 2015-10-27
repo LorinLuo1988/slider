@@ -86,18 +86,19 @@
 
 	Slider.prototype.setDefaultStyle = function () {
 		var sliderContainer = this.sliderContainer;
-		var sliderLiCount = this.sliderContainer.find("ul.slider li").length;
-		var sliderContainerWidth = sliderContainer.width();
-		var sliderContainerHeight = sliderContainer.height();
+		var slider = this.slider;
+		var sliderNav = this.sliderNav;
+		var sliderLiCount = slider.find("li").length;
 
-
-		sliderContainer.find("ul.slider").css({
+		slider.css({
 			"width": sliderLiCount * 100 + "%"
 		});
 
-		sliderContainer.find("ul.slider li").css({
+		slider.find("li").css({
 			"width": 100 / sliderLiCount + "%"
 		});
+
+		sliderNav.find("li:first").addClass("active");
 
 		if (this.indicatorsType == "round") {
 			this.sliderNav.addClass("round");
