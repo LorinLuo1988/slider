@@ -1,0 +1,32 @@
+{
+  "name": "slider",
+  "version": "1.0.0",
+  "description": "\"slider plugin\"",
+  "main": "index.js",
+  "attention": "/*-----@ intervalTime/slideTime = integer;@ animateTime/slideTime = integer;@ indicatorsType: rectangle||round;@ $('.slider-container').slider.update(object): update slider whendiv.slider-container width change or you want change the sliderspeed and interval.-----*/",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lorin19881101/slider.git"
+  },
+  "keywords": [
+    "lorin",
+    "slider"
+  ],
+  "author": "lorin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lorin19881101/slider/issues"
+  },
+  "homepage": "https://github.com/lorin19881101/slider",
+  "dependencies": {
+    "grunt": "^0.4.5",
+	"grunt-contrib-uglify": "*",
+	"grunt-contrib-cssmin": "*",
+	"grunt-contrib-clean": "*",
+	"grunt-contrib-copy": "*",
+	"grunt-contrib-concat": "*"
+  }
+}

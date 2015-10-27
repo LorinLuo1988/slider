@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" href="slider/slider.min.css"/>
+	<link rel="stylesheet" href="index.css"/>
+</head>
+<body>
+<div class="slider-container" id="slider1">
+	<ul class="slider">
+		<li><img src="img/1.jpg" alt=""/></li>
+		<li><img src="img/2.jpg" alt=""/></li>
+		<li><img src="img/3.jpg" alt=""/></li>
+		<li><img src="img/4.jpg" alt=""/></li>
+	</ul>
+	<ul class="slider-nav">
+		<li slide-to="0" class="active"></li>
+		<li slide-to="1"></li>
+		<li slide-to="2"></li>
+		<li slide-to="3"></li>
+	</ul>
+	<button class="slider-prev">&lt;</button>
+	<button class="slider-next">&gt;</button>
+</div>
+
+<div class="slider-container"  id="slider2">
+	<ul class="slider">
+		<li><img src="img/1.jpg" alt=""/></li>
+		<li><img src="img/2.jpg" alt=""/></li>
+		<li><img src="img/3.jpg" alt=""/></li>
+		<li><img src="img/4.jpg" alt=""/></li>
+	</ul>
+	<ul class="slider-nav">
+		<li slide-to="0" class="active"></li>
+		<li slide-to="1"></li>
+		<li slide-to="2"></li>
+		<li slide-to="3"></li>
+	</ul>
+	<button class="slider-prev">&lt;</button>
+	<button class="slider-next">&gt;</button>
+</div>
+宽度: <input type="text" class="width"/>
+<button class="update">update</button>
+
+<script src="jquery-1.8.3.js"></script>
+<script src="slider/slider.min.js"></script>
+<script>
+	/*-----
+	 @ intervalTime/slideTime = integer;
+	 @ animateTime/slideTime = integer;
+	 @ indicatorsType: rectangle||round;
+	 @ $(".slider-container").slider.update(object): update slider when
+	   div.slider-container width change or you want change the slider
+	   speed and interval.
+	-----*/
+	$("#slider1").slider({
+		frameTime: 20,
+		animateTime: 600,
+		intervalTime: 2000,
+		indicatorsType: "round"
+	});
+
+	$("#slider2").slider({
+		frameTime: 20,
+		animateTime: 600,
+		intervalTime: 2000,
+		indicatorsType: "rectangle"
+	});
+
+	$(".update").on("click", function () {
+		$(".slider-container").width($(".width").val());
+
+		$("#slider1").slider('update', {
+			intervalTime: 5000
+		});
+
+		$("#slider2").slider('update', {
+			intervalTime: 5000
+		});
+
+	})
+</script>
+</body>
+</html>

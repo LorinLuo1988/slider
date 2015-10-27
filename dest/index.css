@@ -1,0 +1,10 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+.slider-container {
+	height: 300px;
+	width: 80%;
+	margin: 50px auto;
+	border: 1px solid green;
+}
