@@ -227,17 +227,12 @@
 
 			if (self.animateCounter == self.AnimateCount) {
 				if (setting.direction == "left") {
-					firstLi.css({
-						marginLeft: -firstLi.width()
-					});
-
+					firstLi.css("marginLeft", -firstLi.width());
 					newLi = firstLi.clone(true, true).css("marginLeft", "0px");
 					firstLi.remove();
 					carousel.append(newLi);
 				} else if (setting.direction == "right") {
-					firstLi.css({
-						marginLeft: '0px'
-					});
+					firstLi.css("marginLeft", '0px');
 				}
 
 				self.animateCounter = 0;
