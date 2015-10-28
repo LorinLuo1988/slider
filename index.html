@@ -7,18 +7,30 @@
 	<link rel="stylesheet" href="index.css"/>
 </head>
 <body>
-<div class="slider" id="slider1">
-	<!--<ul class="carousel">-->
-		<!--<li><img src="img/1.jpg" alt=""/></li>-->
-		<!--<li><img src="img/2.jpg" alt=""/></li>-->
-		<!--<li><img src="img/3.jpg" alt=""/></li>-->
-		<!--<li><img src="img/4.jpg" alt=""/></li>-->
-	<!--</ul>-->
-</div>
-
-宽度: <input type="text" class="width"/>
+<div class="slider" id="slider1"></div>
+1. animateTime % frameTime == 0
+<br/>
+<br/>
+2. indicatorsType: rectangle or round
+<br/>
+<br/>
+create: <button class="create">create</button>
+<br/>
+<br/>
+update:
+width<input type="text" class="width"/>
+frameTime<input type="text" class="frameTime"/>
+animateTime<input type="text" class="animateTime"/>
+<br/>
+<br/>
+intervalTime<input type="text" class="intervalTime"/>
+indicatorsType<input type="text" class="indicatorsType"/>
 <button class="update">update</button>
-
+<br/>
+<br/>
+destroy: <button class="destroy">destroy</button>
+<br/>
+<br/>
 <script src="jquery-1.8.3.js"></script>
 <script src="slider/slider.js"></script>
 <script>
@@ -30,6 +42,32 @@
 	   div.slider-container width change or you want change the slider
 	   speed and interval.
 	-----*/
+
+	$(".create").on("click", function () {
+		$("#slider1").slider({
+			frameTime: 20,
+			animateTime: 600,
+			intervalTime: 2000,
+			indicatorsType: "round",
+			imgArr: ["img/1.jpg", "img/2.jpg", "img/3.jpg", "img/4.jpg"]
+		});
+	});
+
+	$(".update").on("click", function () {
+		$(".slider").width($(".width").val());
+
+		$("#slider1").slider('update', {
+			indicatorsType: $(".indicatorsType").val(),
+			intervalTime: $(".intervalTime").val(),
+			frameTime: $(".frameTime").val(),
+			animateTime: $(".animateTime").val()
+		})
+	});
+
+	$(".destroy").on("click", function () {
+		$("#slider1").slider('destroy');
+	});
+
 	$("#slider1").slider({
 		frameTime: 20,
 		animateTime: 600,
@@ -37,16 +75,6 @@
 		indicatorsType: "round",
 		imgArr: ["img/1.jpg", "img/2.jpg", "img/3.jpg", "img/4.jpg"]
 	});
-
-	$(".update").on("click", function () {
-		$(".slider").width($(".width").val());
-
-		$("#slider1").slider('update', {
-			indicatorsType: "round",
-			intervalTime: 5000
-		});
-
-	})
 </script>
 </body>
 </html>

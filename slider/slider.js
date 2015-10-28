@@ -32,6 +32,12 @@
 		setting = setting || {};
 
 		function updateInner () {
+			clearInterval(self.timer);
+			clearTimeout(self.timeout);
+			delete self.timeout;
+			delete self.timer;
+			self.carousel.css("left", 0);
+
 			if (setting.intervalTime) {
 				self.intervalTime = setting.intervalTime;
 			}
@@ -50,21 +56,28 @@
 				self.sliderNav.removeClass("round");
 			}
 
+			self.animateCounter = 0;
+			self.liIndex = 0;
+			self.sliding = false;
+			self.pauseCommonSlide = false;
+			self.sliderNav.find("li").removeClass("active");
+			self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 			self.AnimateCount = self.animateTime / self.frameTime;
 			self.slideDeltaX = Math.floor(self.slider.width() / self.AnimateCount);
+
+			self.carouselRun();
 		};
 
-		if (this.sliding) {
-			this.updateDelay = function () {
-				updateInner();
-
-				delete this.updateDelay;
-			}
-
-			return false;
-		}
-
 		updateInner();
+	};
+
+	Slider.prototype.destroy = function () {
+		this.slider.empty();
+		clearInterval(this.timer);
+		clearTimeout(this.timeout);
+		delete this.timeout;
+		delete this.timer;
+		delete this.slider[0].sliderObj;
 	};
 
 	Slider.prototype.initialize = function () {
@@ -353,17 +366,15 @@
 				return false;
 			}
 
-			if (arguments.length == 1) {
-				setting = arguments[0];
-			} else if (arguments.length == 2) {
+			if (arguments.length == 1 && typeof arguments[0] == "object") {
+				if (!this[0].sliderObj) {
+					this[0].sliderObj = new Slider(this ,arguments[0]);
+				}
+			} else {
 				type = arguments[0];
 				setting = arguments[1];
 
 				this[0].sliderObj[type](setting);
-			}
-
-			if (!this[0].sliderObj) {
-				this[0].sliderObj = new Slider(this ,setting);
 			}
 		}
 	});
