@@ -14,6 +14,9 @@
 2. indicatorsType: rectangle or round
 <br/>
 <br/>
+3. carouselType: single or multi
+<br/>
+<br/>
 create: <button class="create">create</button>
 <br/>
 <br/>
@@ -24,7 +27,16 @@ animateTime<input type="text" class="animateTime"/>
 <br/>
 <br/>
 intervalTime<input type="text" class="intervalTime"/>
-indicatorsType<input type="text" class="indicatorsType"/>
+indicatorsType
+<select name="" class="indicatorsType">
+	<option value="round">round</option>
+	<option value="rectangle">rectangle</option>
+</select>
+carouselType
+<select name="" class="carouselType">
+	<option value="single">single</option>
+	<option value="multi">multi</option>
+</select>
 <button class="update">update</button>
 <br/>
 <br/>
@@ -37,10 +49,11 @@ destroy: <button class="destroy">destroy</button>
 	/*-----
 	 @ intervalTime/slideTime = integer;
 	 @ animateTime/slideTime = integer;
-	 @ indicatorsType: rectangle||round;
+	 @ indicatorsType: rectangle or round;
 	 @ $(".slider-container").slider.update(object): update slider when
 	   div.slider-container width change or you want change the slider
 	   speed and interval.
+	 @ carouselType: single or multi
 	-----*/
 
 	$(".create").on("click", function () {
@@ -49,6 +62,7 @@ destroy: <button class="destroy">destroy</button>
 			animateTime: 600,
 			intervalTime: 2000,
 			indicatorsType: "round",
+			carouselType: "single",
 			imgArr: ["img/1.jpg", "img/2.jpg", "img/3.jpg", "img/4.jpg"]
 		});
 	});
@@ -60,8 +74,9 @@ destroy: <button class="destroy">destroy</button>
 			indicatorsType: $(".indicatorsType").val(),
 			intervalTime: $(".intervalTime").val(),
 			frameTime: $(".frameTime").val(),
-			animateTime: $(".animateTime").val()
-		})
+			animateTime: $(".animateTime").val(),
+			carouselType: $(".carouselType").val()
+		});
 	});
 
 	$(".destroy").on("click", function () {
@@ -73,6 +88,7 @@ destroy: <button class="destroy">destroy</button>
 		animateTime: 600,
 		intervalTime: 2000,
 		indicatorsType: "round",
+		carouselType: "single",
 		imgArr: ["img/1.jpg", "img/2.jpg", "img/3.jpg", "img/4.jpg"]
 	});
 </script>

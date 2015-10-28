@@ -8,6 +8,7 @@
 		this.prevButton = null;
 		this.carousel = null;
 		this.sliderNav = null;
+		this.carouselType = setting.carouselType;
 		this.imgArr = setting.imgArr;
 		this.setting = setting;
 		this.timer = null;
@@ -48,6 +49,10 @@
 
 			if (setting.frameTime) {
 				self.frameTime = setting.frameTime;
+			}
+
+			if (setting.carouselType) {
+				self.carouselType = setting.carouselType;
 			}
 
 			if (setting.indicatorsType == "round") {
@@ -269,10 +274,6 @@
 				delete self.replaceImg;
 				self.sliding = false;
 
-				if (self.updateDelay) {
-					self.updateDelay();
-				}
-
 				if (!self.pauseCommonSlide) {
 					self.carouselRun();
 				}
@@ -291,9 +292,29 @@
 		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
 		var sliderLeft = parseInt(carousel.css("left"));
-		var replaceImg = self.slider.children("img:first");
-		var replaceImgLeft = parseInt(replaceImg.css("left"));
+		var replaceImg = null;
+		var replaceImgLeft = 0;
 		var slideCount = Math.abs(setting.clickIndex - self.liIndex);
+		var AnimateCount = self.carouselType == "multi" ? self.AnimateCount * slideCount : self.AnimateCount;
+
+		if (self.carouselType == "single") {
+			replaceImg = self.carousel.find("img").eq(self.liIndex).clone(true, true);
+
+			replaceImg.css({
+				width: carousel.find("li").width(),
+				height: carousel.find("li").height(),
+				position: "absolute",
+				top: "0px",
+				left: "0px"
+			}).appendTo(self.slider);
+
+			if (setting.direction == "left") {
+				carousel.css("left", -(setting.clickIndex - 1) * carousel.find("li").width());
+			} else if (setting.direction == "right") {
+				carousel.css("left", -(setting.clickIndex + 1) * carousel.find("li").width());
+			}
+
+		}
 
 		self.sliding = true;
 		self.liIndex = setting.clickIndex;
@@ -302,25 +323,35 @@
 
 		self.timer = setInterval(function () {
 			sliderLeft = parseInt(carousel.css("left"));
+
+			if (self.carouselType == "single") {
+				replaceImgLeft = parseInt(replaceImg.css("left"));
+			}
+
 			self.animateCounter++;
 
-			if (self.animateCounter >= self.AnimateCount * slideCount) {
+			if (self.animateCounter >= AnimateCount) {
 				carousel.css("left", (setting.direction == "left") ? -carousel.find("li").width() * self.liIndex : carousel.find("li").width() * self.liIndex);
+
+				if (self.carouselType == "single") {
+					replaceImg.remove();
+				}
+
 				self.animateCounter = 0;
 				clearInterval(self.timer);
 				delete self.timer;
 				delete self.timeout;
 				self.sliding = false;
 
-				if (self.updateDelay) {
-					self.updateDelay();
-				}
-
 				if (!self.pauseCommonSlide) {
 					self.carouselRun();
 				}
 			} else {
 				carousel.css("left", sliderLeft + slideDeltaX);
+
+				if (self.carouselType == "single") {
+					replaceImg.css("left", replaceImgLeft + slideDeltaX);
+				}
 			}
 		}, self.setting.frameTime);
 	};
