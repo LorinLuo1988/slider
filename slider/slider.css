@@ -65,6 +65,11 @@ button.slider-prev {
 	opacity: 0.6;
 	cursor: pointer;
 	display: none;
+	font-size: 18px;
+	font-weight: 500;
+}
+button.slider-prev:hover {
+	opacity: 0.9;
 }
 button.slider-next {
 	position: absolute;
@@ -82,4 +87,8 @@ button.slider-next {
 	opacity: 0.6;
 	cursor: pointer;
 	display: none;
+	font-size: 18px;
+}
+button.slider-next:hover {
+	opacity: 0.9;
 }

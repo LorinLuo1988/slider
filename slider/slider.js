@@ -8,6 +8,7 @@
 		this.prevButton = null;
 		this.carousel = null;
 		this.sliderNav = null;
+		this.carouselType = setting.carouselType;
 		this.imgArr = setting.imgArr;
 		this.setting = setting;
 		this.timer = null;
@@ -32,6 +33,12 @@
 		setting = setting || {};
 
 		function updateInner () {
+			clearInterval(self.timer);
+			clearTimeout(self.timeout);
+			delete self.timeout;
+			delete self.timer;
+			self.carousel.css("left", 0);
+
 			if (setting.intervalTime) {
 				self.intervalTime = setting.intervalTime;
 			}
@@ -44,27 +51,38 @@
 				self.frameTime = setting.frameTime;
 			}
 
+			if (setting.carouselType) {
+				self.carouselType = setting.carouselType;
+			}
+
 			if (setting.indicatorsType == "round") {
 				self.sliderNav.addClass("round");
 			} else if (setting.indicatorsType == "rectangle") {
 				self.sliderNav.removeClass("round");
 			}
 
+			self.animateCounter = 0;
+			self.liIndex = 0;
+			self.sliding = false;
+			self.pauseCommonSlide = false;
+			self.sliderNav.find("li").removeClass("active");
+			self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 			self.AnimateCount = self.animateTime / self.frameTime;
 			self.slideDeltaX = Math.floor(self.slider.width() / self.AnimateCount);
+
+			self.carouselRun();
 		};
 
-		if (this.sliding) {
-			this.updateDelay = function () {
-				updateInner();
-
-				delete this.updateDelay;
-			}
-
-			return false;
-		}
-
 		updateInner();
+	};
+
+	Slider.prototype.destroy = function () {
+		this.slider.empty();
+		clearInterval(this.timer);
+		clearTimeout(this.timeout);
+		delete this.timeout;
+		delete this.timer;
+		delete this.slider[0].sliderObj;
 	};
 
 	Slider.prototype.initialize = function () {
@@ -174,7 +192,7 @@
 		return this;
 	};
 
-	Slider.prototype.carouselRun = function (isBindClick) {
+	Slider.prototype.carouselRun = function () {
 		var self = this;
 
 		this.timeout = setTimeout(function () {
@@ -196,13 +214,41 @@
 		var self = setting.context;
 		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
-		var marginLeft = 0;
 
 		if (setting.direction == "left") {
 			self.liIndex++;
-			self.liIndex = self.liIndex >= self.CarouselCount ? 0 : self.liIndex;
+
+			if (self.liIndex == self.CarouselCount) {
+				self.replaceImg = $("<img src='"+ carousel.find("li").eq(self.CarouselCount - 1).find("img").attr("src") +"'/>")
+									.css({
+										position: "absolute",
+										width: "100%",
+										height: "100%",
+										left: "0px",
+										top: "0px"
+									});
+
+				self.slider.append(self.replaceImg);
+				carousel.css("left", carousel.find("li").width());
+				self.liIndex = 0;
+			}
 		} else if (setting.direction == "right") {
 			self.liIndex--;
+
+			if (self.liIndex == -1) {
+				self.replaceImg = $("<img src='"+ carousel.find("li").eq(0).find("img").attr("src") +"'/>")
+					.css({
+						position: "absolute",
+						width: "100%",
+						height: "100%",
+						left: "0px",
+						top: "0px"
+					});
+
+				self.slider.append(self.replaceImg);
+				carousel.css("left", -carousel.find("li").width() * self.CarouselCount);
+			}
+
 			self.liIndex = self.liIndex <= -1 ? self.CarouselCount - 1 : self.liIndex;
 		}
 
@@ -211,45 +257,32 @@
 		self.sliderNav.find("li").removeClass("active");
 		self.sliderNav.find("li").eq(self.liIndex).addClass("active");
 
-		if (setting.direction == "right") {
-			var lastLi = carousel.find("li:last");
-
-			var newLi = lastLi.clone(true, true).css("marginLeft", -lastLi.width());
-			lastLi.remove();
-			carousel.prepend(newLi);
-		}
-
-		var firstLi = carousel.find("li:first");
-
 		self.timer = setInterval(function () {
-			marginLeft = parseInt(firstLi.css("marginLeft"));
 			self.animateCounter++;
 
-			if (self.animateCounter == self.AnimateCount) {
-				if (setting.direction == "left") {
-					firstLi.css("marginLeft", -firstLi.width());
-					newLi = firstLi.clone(true, true).css("marginLeft", "0px");
-					firstLi.remove();
-					carousel.append(newLi);
-				} else if (setting.direction == "right") {
-					firstLi.css("marginLeft", '0px');
+			if (self.animateCounter % self.AnimateCount == 0) {
+				carousel.css("left", -carousel.find("li").width() * self.liIndex);
+				self.animateCounter = 0;
+
+				if (self.replaceImg) {
+					self.replaceImg.remove();
 				}
 
-				self.animateCounter = 0;
 				clearInterval(self.timer);
 				delete self.timer;
 				delete self.timeout;
+				delete self.replaceImg;
 				self.sliding = false;
-
-				if (self.updateDelay) {
-					self.updateDelay();
-				}
 
 				if (!self.pauseCommonSlide) {
 					self.carouselRun();
 				}
 			} else {
-				firstLi.css("marginLeft", marginLeft + slideDeltaX);
+				carousel.css("left", parseInt(carousel.css("left")) + slideDeltaX);
+
+				if (self.replaceImg) {
+					self.replaceImg.css("left", parseInt(self.replaceImg.css("left")) + slideDeltaX);
+				}
 			}
 		}, self.setting.frameTime);
 	};
@@ -259,8 +292,29 @@
 		var carousel = self.carousel;
 		var slideDeltaX = (setting.direction == "left") ? -self.slideDeltaX : self.slideDeltaX;
 		var sliderLeft = parseInt(carousel.css("left"));
-		var replaceImg = self.slider.children("img:first");
-		var replaceImgLeft = parseInt(replaceImg.css("left"));
+		var replaceImg = null;
+		var replaceImgLeft = 0;
+		var slideCount = Math.abs(setting.clickIndex - self.liIndex);
+		var AnimateCount = self.carouselType == "multi" ? self.AnimateCount * slideCount : self.AnimateCount;
+
+		if (self.carouselType == "single") {
+			replaceImg = self.carousel.find("img").eq(self.liIndex).clone(true, true);
+
+			replaceImg.css({
+				width: carousel.find("li").width(),
+				height: carousel.find("li").height(),
+				position: "absolute",
+				top: "0px",
+				left: "0px"
+			}).appendTo(self.slider);
+
+			if (setting.direction == "left") {
+				carousel.css("left", -(setting.clickIndex - 1) * carousel.find("li").width());
+			} else if (setting.direction == "right") {
+				carousel.css("left", -(setting.clickIndex + 1) * carousel.find("li").width());
+			}
+
+		}
 
 		self.sliding = true;
 		self.liIndex = setting.clickIndex;
@@ -269,29 +323,36 @@
 
 		self.timer = setInterval(function () {
 			sliderLeft = parseInt(carousel.css("left"));
-			replaceImgLeft = parseInt(replaceImg.css("left"));
+
+
+			if (self.carouselType == "single") {
+				replaceImgLeft = parseInt(replaceImg.css("left"));
+			}
+
 			self.animateCounter++;
 
-			if (self.animateCounter == self.AnimateCount) {
-				replaceImg.css("left", (setting.direction == "left") ? -carousel.find("li").width() : carousel.find("li").width());
-				carousel.css("left", 0);
-				replaceImg.remove();
+			if (self.animateCounter >= AnimateCount) {
+				carousel.css("left", (setting.direction == "left") ? -carousel.find("li").width() * self.liIndex : carousel.find("li").width() * self.liIndex);
+
+				if (self.carouselType == "single") {
+					replaceImg.remove();
+				}
+
 				self.animateCounter = 0;
 				clearInterval(self.timer);
 				delete self.timer;
 				delete self.timeout;
 				self.sliding = false;
 
-				if (self.updateDelay) {
-					self.updateDelay();
-				}
-
 				if (!self.pauseCommonSlide) {
 					self.carouselRun();
 				}
 			} else {
 				carousel.css("left", sliderLeft + slideDeltaX);
-				replaceImg.css("left", replaceImgLeft + slideDeltaX);
+
+				if (self.carouselType == "single") {
+					replaceImg.css("left", replaceImgLeft + slideDeltaX);
+				}
 			}
 		}, self.setting.frameTime);
 	};
@@ -320,23 +381,6 @@
 		}
 
 		if (Math.abs(clickIndex - this.liIndex ) > 1) {
-			var replaceImg = carousel.find("li").eq(0).find("img").clone(true, true);
-
-			replaceImg.css({
-				width: carousel.find("li").width(),
-				height: carousel.find("li").height(),
-				position: "absolute",
-				top: "0px",
-				left: "0px"
-			}).appendTo(slider);
-
-			carousel.css("left", type == "next" ? carousel.find("li").width() : -carousel.find("li").width());
-
-			var beforeLis = carousel.find("li").slice(0, clickIndex - this.liIndex).clone(true, true);
-			var afterLis = carousel.find("li").slice(clickIndex - this.liIndex, this.CarouselCount).clone(true, true);
-
-			carousel.find("li").remove().end().append(afterLis).append(beforeLis);
-
 			this.multiNext({
 				context: this,
 				direction: type == "next" ? "left" : "right",
@@ -354,17 +398,15 @@
 				return false;
 			}
 
-			if (arguments.length == 1) {
-				setting = arguments[0];
-			} else if (arguments.length == 2) {
+			if (arguments.length == 1 && typeof arguments[0] == "object") {
+				if (!this[0].sliderObj) {
+					this[0].sliderObj = new Slider(this ,arguments[0]);
+				}
+			} else {
 				type = arguments[0];
 				setting = arguments[1];
 
 				this[0].sliderObj[type](setting);
-			}
-
-			if (!this[0].sliderObj) {
-				this[0].sliderObj = new Slider(this ,setting);
 			}
 		}
 	});
